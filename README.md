@@ -14,7 +14,7 @@ Ubuntu 18.04 LTS, Ubuntu 20.04 LTS
 Docker Community Edition (CE) => 18.09.
 Containerd.io => 1.2.10
 
-## Appending Trial License
+### Appending Trial License
 
 ### First, you need to sign up for a trial license for NGINX Controller.
 https://docs.nginx.com/nginx-controller/admin-guides/install/try-nginx-controller-app-sec/
@@ -22,7 +22,7 @@ https://docs.nginx.com/nginx-controller/admin-guides/install/try-nginx-controlle
 ### Download the NGINX Controller installer package from the MyF5 Customer Portal
 https://my.f5.com/manage/s/downloads
 
-### Extract & Install  package files
+## Extract & Install  package files
 Run the installation script:
 
 $ cd controller-installer
@@ -46,21 +46,20 @@ The new Splunk Docker image contains logic that allows your default.yml and lice
 
 #### Assuming you have pulled splunk:latest successfully, you can navigate to the nginx-data-www folder and use the following command to generate a sample default.yml
 
-docker run splunk/splunk:latest create-defaults > ./default.yml
+$ docker run splunk/splunk:latest create-defaults > ./default.yml
 
 #### Once you have generated your default.yaml and inserted your license XML into the mySplunkLicense.lic file, it should look something like this:
 
-cd nginx-data-www/
+$ cd nginx-data-www/
 ls -la
 #### hen, from the nginx directory create your configmaps:
-kubectl -n splunk create configmap nginx-data-www --from-file=nginx-data-www
+$ kubectl -n splunk create configmap nginx-data-www --from-file=nginx-data-www
 
 #### Then create one for the sample nginx conf file:
-kubectl -n splunk create configmap nginx-config --from-file=nginx-static.conf
+$ kubectl -n splunk create configmap nginx-config --from-file=nginx-static.conf
 
 #### The deploy the nginx controllers:
-
-kubectl -n splunk apply -f controllers
+$ kubectl -n splunk apply -f controllers
 
 ### Kubernetes 
 Use kubectl -n splunk logs -f <podname> to watch for the Ansible plays to finish
@@ -72,12 +71,11 @@ Start a single containerized instance of Splunk Enterprise with the command belo
 $ docker run -p 8000:8000 -e "SPLUNK_PASSWORD=<password>" \
              -e "SPLUNK_START_ARGS=--accept-license" \
              -it --name so1 splunk/splunk:latest
-
 ## To enter the container and run Splunk CLI commands, run:
 ### Defaults to the user "ansible"
-docker exec -it so1 /bin/bash
+$ docker exec -it so1 /bin/bash
 ### Run shell as the user "splunk"
-docker exec -u splunk -it so1 bash             
+$ docker exec -u splunk -it so1 bash             
 
 ### Execute the following to bring up your deployment:
 $ docker run --name so1 --hostname so1 -p 8000:8000 \
@@ -92,7 +90,7 @@ $ SPLUNK_PASSWORD=<password> docker-compose up -d
 
 And Then:
 
-openssl req -x509 -newkey rsa:4096 -passout pass:abcd1234 -keyout /home/key.pem -out /home/cert.pem -days 365 -subj /CN=localhost
+$ openssl req -x509 -newkey rsa:4096 -passout pass:abcd1234 -keyout /home/key.pem -out /home/cert.pem  -days 365 -subj /CN=localhost
 
 Once you have your certificates available, you can execute the following to bring up your deployment with SSL enabled on the Splunk Web UI:
 
@@ -105,6 +103,3 @@ $ docker run --name so1 --hostname so1 -p 8000:8000 \
               -e "SPLUNK_START_ARGS=--accept-license" \
               -v /home:/home \
               -it splunk/splunk:latest
-
-### Execute the following to bring up your deployment:
-$ SPLUNK_PASSWORD=<password> docker-compose up -d
