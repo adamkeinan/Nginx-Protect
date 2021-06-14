@@ -41,7 +41,7 @@ cp /etc/controller-agent/agent.conf <temporary location>
 ### Login and capture the session cookie:
 
 $ curl -c cookie.txt -X POST --url 'https://198.51.100.10/api/v1/platform/login' --header 'Content-Type: application/json' --data '{"credentials": {"type": "BASIC","username": "arthur@arthurdent.net","password": "Towel$123"}}'
-# Ngnix-Spunlk
+# Nginx-Splunk
 The new Splunk Docker image contains logic that allows your default.yml and license files to be centrally served via url.
 
 #### Assuming you have pulled splunk:latest successfully, you can navigate to the nginx-data-www folder and use the following command to generate a sample default.yml
