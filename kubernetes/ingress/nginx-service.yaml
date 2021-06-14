@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: nginx-ingress-with-annotations
+  annotations:
+    nginx.org/proxy-connect-timeout: "30s"
+    nginx.org/proxy-read-timeout: "20s"
+    nginx.org/client-max-body-size: "4m"
+    nginx.org/server-snippets: |
+      location / {
+        return 302 /nginx;
+      }
+spec:
+  rules:
+  - host: company.example.com
+    http:
+      paths:
+      - path: /splunk
+        backend:
+          serviceName: spulnk-license-deployer
+          servicePort: 80
+      - path: /nginx
+        backend:
+          serviceName: nginx-splunk-default
+          servicePort: 80

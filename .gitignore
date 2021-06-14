@@ -8,6 +8,8 @@
 *.log
 *.log.*
 *.sig
-
+.vscode/
+.history/
+tmp.* 
 pkg/
 src/
