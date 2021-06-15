@@ -10,7 +10,7 @@ Perquisites for Setting up NGINX Controller and NGINX App Protect
 Debian 9
 Ubuntu 18.04 LTS, Ubuntu 20.04 LTS
 
-### Docker Requirements.
+### Docker Requirements
 Docker Community Edition (CE) => 18.09.
 Containerd.io => 1.2.10
 
@@ -48,14 +48,66 @@ The new Splunk Docker image contains logic that allows your default.yml and lice
 
 $ docker run splunk/splunk:latest create-defaults > ./default.yml
 
+# NGINX Ingress Controller for Kubernetes
+Well be defining this Controller using Two ways:
+- Helm
+- Manifests
+
+## Installation with Helm Enviorment
+First, Will be need to install and Set Up and Deploy the Ingress Controller Image
+# Building the Ingress Controller Image
+
+## Building the Image and Pushing It to the Private Registry
+### Step One: Clone the Ingress Controller repo:
+$ git clone https://github.com/nginxinc/kubernetes-ingress/
+$ git checkout v1.11.3
+### Step Two: Build the image
+#### For NGINX Plus or REST API:
+$ ls nginx-repo.*
+nginx-repo.crt  nginx-repo.key
+
+$ make debian-image-plus PREFIX=myregistry.example.com/nginx-plus-ingress TARGET=container
+
+----  the image myregistry.example.com/nginx-ingress:1.11.3 is built ----
+
+### Step Three: Push the image
+$ make push PREFIX=myregistry.example.com/nginx-ingress
+
+#### Once you have ste up and configured the Image you are ready to move on for the Controller Installation Using Helm
+
+### NGINX Ingress Controller Installation Using Helm
+
+## Step One: Getting the Chart Sources
+#### Clone the Ingress controller repo
+$ git clone https://github.com/nginxinc/kubernetes-ingress/
+#### Change your working directory to /deployments/helm-chart:
+$ cd kubernetes-ingress/deployments/helm-chart
+$ git checkout v1.11.3
+
+## Step Two: Adding the Helm Repository
+$ helm repo add nginx-stable https://helm.nginx.com/stable
+$ helm repo update
+
+## Step Three: Installing the Chart: Installing the CRDs
+set controller.enableCustomResources & controller.appprotect.enable to True
+
+## Step Four: Installing via Helm Repository
+$ helm install my-release nginx-stable/nginx-ingress --set controller.image.repository=myregistry.example.com/nginx-plus-ingress --set controller.nginxplus=true
+
+## Next: Create the NginxIngressController
+#### PATH /kubernetes/ingress
+#### RUN Command:
+$ kubectl apply -f nginx-ingress-controller.yaml
+
+
 #### Once you have generated your default.yaml and inserted your license XML into the mySplunkLicense.lic file, it should look something like this:
 
 $ cd nginx-data-www/
 ls -la
-#### hen, from the nginx directory create your configmaps:
+#### From the nginx directory create your configmaps:
 $ kubectl -n splunk create configmap nginx-data-www --from-file=nginx-data-www
 
-#### Then create one for the sample nginx conf file:
+#### Create one for the sample nginx conf file:
 $ kubectl -n splunk create configmap nginx-config --from-file=nginx-static.conf
 
 #### The deploy the nginx controllers:
@@ -65,6 +117,15 @@ $ kubectl -n splunk apply -f controllers
 Use kubectl -n splunk logs -f <podname> to watch for the Ansible plays to finish
 
 show pods in the splunk name space with wide output - kubectl -n splunk get pods -o wide
+
+### NGINX Ingress Controller Supported Kubernetes Versions
+https://docs.nginx.com/nginx-ingress-controller/technical-specifications/#supported-kubernetes-versions
+Recommended: nginx:1.21.0, which is based on debian:buster-slim
+
+### Helm Supported Versions
+1. Git.
+2. The Ingress Controller supports installation via Helm 3.0+.
+3. NGINX Plus or Nginx REST API
 # Quickstart
 Start a single containerized instance of Splunk Enterprise with the command below, replacing <password> with a password string that conforms to the Splunk Enterprise password requirements.
 
@@ -103,3 +164,72 @@ $ docker run --name so1 --hostname so1 -p 8000:8000 \
               -e "SPLUNK_START_ARGS=--accept-license" \
               -v /home:/home \
               -it splunk/splunk:latest
+
+## Applyin Nginx App-Protect Policies For Attack Types as Best Practice
+
+## Settig up a Configuration file
+NGINX App Protect security policy configuration uses the declarative format
+#### App Protect enabled in the HTTP context and the policy /etc/app_protect/conf/              
+PATH /nginx/app_protect/NginxDefaultPolicy.json
+
+## Example of generating a JSON policy suitable for NGINX App Protect usage:
+$ /opt/app_protect/bin/convert-policy -i /path/to/policy.xml -o /path/to/policy.json | jq
+
+Output:
+
+{
+    "warnings": [
+        "Traffic Learning, Policy Building, and staging are unsupported",
+        "Element '/plain-text-profiles' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_ASM_COOKIE_HIJACKING' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_BLOCKING_CONDITION' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_BRUTE_FORCE' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_CONVICTION' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_CROSS_ORIGIN_REQUEST' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_CSRF' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_CSRF_EXPIRED' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_DYNAMIC_SESSION' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_FLOW' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_FLOW_DISALLOWED_INPUT' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_FLOW_ENTRY_POINT' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_FLOW_MANDATORY_PARAMS' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_GEOLOCATION' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_GRPC_FORMAT' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_GRPC_METHOD' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_GWT_FORMAT' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_GWT_MALFORMED' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_HOSTNAME_MISMATCH' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_LOGIN_URL_BYPASSED' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_LOGIN_URL_EXPIRED' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_MALICIOUS_DEVICE' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_MALICIOUS_IP' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_PARAMETER_DYNAMIC_VALUE' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_PLAINTEXT_FORMAT' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_REDIRECT' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_SESSION_AWARENESS' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_VIRUS' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_WEBSOCKET_BAD_REQUEST' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_WEBSOCKET_BINARY_MESSAGE_LENGTH' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_WEBSOCKET_BINARY_MESSAGE_NOT_ALLOWED' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_WEBSOCKET_EXTENSION' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_WEBSOCKET_FRAMES_PER_MESSAGE_COUNT' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_WEBSOCKET_FRAME_LENGTH' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_WEBSOCKET_FRAME_MASKING' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_WEBSOCKET_FRAMING_PROTOCOL' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_WEBSOCKET_TEXT_MESSAGE_NOT_ALLOWED' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_WEBSOCKET_TEXT_NULL_VALUE' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_XML_SCHEMA' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_XML_SOAP_ATTACHMENT' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_XML_SOAP_METHOD' is unsupported.",
+        "/blocking-settings/violations/name value 'VIOL_XML_WEB_SERVICES_SECURITY' is unsupported.",
+        "/blocking-settings/http-protocols/description value 'Unparsable request content' is unsupported.",
+        "/general/enableEventCorrelation must be 'false' (was 'true').",
+        "Element '/websocket-urls' is unsupported.",
+        "/protocolIndependent must be 'true' (was 'false').",
+        "Element '/redirection-protection' is unsupported.",
+        "Element '/gwt-profiles' is unsupported.",
+        "/signature-sets/learn value true is unsupported"
+    ],
+    "file_size": 24227,
+    "completed_successfully": true,
+    "filename": "/path/to/policy.json"

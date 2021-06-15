@@ -1,0 +1,38 @@
+{
+    "policy": {
+        "name": "allow_deny",
+        "template": {
+            "name": "POLICY_TEMPLATE_NGINX_BASE"
+        },
+        "applicationLanguage": "utf-8",
+        "enforcementMode": "blocking",
+        "blocking-settings": {
+            "violations": [
+                {
+                    "name": "VIOL_BLACKLISTED_IP",
+                    "alarm": true,
+                    "block": true
+                }
+            ]
+        },
+        "whitelist-ips": [
+            {
+                "blockRequests": "never",
+                "neverLogRequests": false,
+                "ipAddress": "1.1.1.1",
+                "ipMask": "255.255.255.255"
+            },
+            {
+                "blockRequests": "always",
+                "ipAddress": "2.2.2.2",
+                "ipMask": "255.255.255.255"
+            },
+            {
+                "blockRequests": "never",
+                "neverLogRequests": false,
+                "ipAddress": "3.3.3.0",
+                "ipMask": "255.255.255.0"
+            }
+        ]
+    }
+}

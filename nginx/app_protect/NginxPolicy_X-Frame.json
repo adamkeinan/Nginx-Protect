@@ -1,0 +1,18 @@
+{
+    "name": "x_frame_options",
+    "template": {
+        "name": "POLICY_TEMPLATE_NGINX_BASE"
+    },
+    "applicationLanguage": "utf-8",
+    "enforcementMode": "blocking",
+    "urls": [
+        {
+            "name": "/clickme",
+            "type": "explicit",
+            "method": "*",
+            "isAllowed": true,
+            "clickjackingProtection": true,
+            "allowRenderingInFrames": "only-same"
+        }
+    ]
+}
